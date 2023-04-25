@@ -33,7 +33,7 @@ function onLoad(root, response) {
             select.appendChild(option);
         }
 
-        const makeSrc = (link) => `https:${link}?episode=1`;
+        const makeSrc = (link) => `https:${link}`;
 
         const iframe = document.createElement('iframe');
         iframe.src = makeSrc(response.result[0].link);
