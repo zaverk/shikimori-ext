@@ -1,9 +1,24 @@
 function onFormLoaded(form, watchUrl) {
     const button = document.createElement('a');
     button.className += 'shikimori-ext__button';
-    button.innerText = 'Watch';
+    button.innerText = 'Смотреть';
     button.href = watchUrl;
     button.target = "_blank";
+    
+    var style = getComputedStyle(document.querySelector('.b-db_entry > .c-image > .b-user_rate .b-add_to_list .trigger'));
+    button.style.font = style.font;
+    button.style.border = style.border;
+    button.style.boxShadow = style.boxShadow;
+    button.style.borderRadius = style.borderRadius;
+    button.style.background = style.background;
+    button.style.color = style.color;
+    button.style.fontSize = style.fontSize;
+    button.style.fontWeight = style.fontWeight;
+    button.style.lineHeight = style.lineHeight;
+    button.style.maxWidth = style.maxWidth;
+    button.style.padding = style.padding;
+    button.style.boxSizing = style.boxSizing;
+    button.style.display = style.display;
 
     form.prepend(button);
 }
