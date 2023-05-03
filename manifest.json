@@ -14,9 +14,6 @@
         "https://*.shikimori.one/*",
         "https://*.shikimori.me/*"
       ],
-      "css": [
-        "inpage.css"
-      ],
       "js": [
         "content.js"
       ],
