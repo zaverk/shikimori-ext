@@ -1,73 +1,119 @@
-function onFormLoaded(form, watchUrl) {
+const WATCH_BUTTON_CLASS_NAME = 'shikimori-ext__button';
+const BUTTONS_BLOCK_SELECTOR = '.b-db_entry > .c-image > .b-user_rate';
+const REFERENCE_BUTTON_SELECTOR = `${BUTTONS_BLOCK_SELECTOR} .b-add_to_list .trigger`
+const PLAY_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="27" height="11" viewBox="0 0 25 25" fill="currentColor"><path d="M2 24v-24l20 12-20 12z"/></svg>';
+
+const createWatchButtonInnerHtml = (label) => {
+    const buttonInnerContent = document.createElement('div');
+    buttonInnerContent.style.display = 'inline-flex';
+
+    const buttonInnerIcon = document.createElement('span');
+    buttonInnerIcon.innerHTML = PLAY_ICON;
+
+    const buttonInnerLabel = document.createElement('span');
+    buttonInnerLabel.innerText = label;
+
+    buttonInnerContent.append(buttonInnerIcon);
+    buttonInnerContent.append(buttonInnerLabel);
+
+    return buttonInnerContent;
+}
+
+const createWatchButtonNode = (watchUrl) => {
     const button = document.createElement('a');
-    button.className += 'shikimori-ext__button';
-    button.innerText = 'Смотреть';
+    button.className += WATCH_BUTTON_CLASS_NAME;
     button.href = watchUrl;
     button.target = "_blank";
     
-    var style = getComputedStyle(document.querySelector('.b-db_entry > .c-image > .b-user_rate .b-add_to_list .trigger'));
-    button.style.font = style.font;
-    button.style.border = style.border;
-    button.style.boxShadow = style.boxShadow;
-    button.style.borderRadius = style.borderRadius;
-    button.style.background = style.background;
-    button.style.color = style.color;
-    button.style.fontSize = style.fontSize;
-    button.style.fontWeight = style.fontWeight;
-    button.style.lineHeight = style.lineHeight;
-    button.style.maxWidth = style.maxWidth;
-    button.style.padding = style.padding;
-    button.style.boxSizing = style.boxSizing;
-    button.style.display = style.display;
+    const watchButtonInnerNode = createWatchButtonInnerHtml('Смотреть');
+    button.appendChild(watchButtonInnerNode);
 
-    form.prepend(button);
+    const copyStyleFromNode = document.querySelector(REFERENCE_BUTTON_SELECTOR);
+
+    const stylesNode = window.getComputedStyle(copyStyleFromNode);
+
+    button.style.border = stylesNode.border;
+    button.style.boxShadow = stylesNode.boxShadow;
+    button.style.borderRadius = stylesNode.borderRadius;
+    button.style.background = stylesNode.background;
+    button.style.color = stylesNode.color;
+    button.style.fontSize = stylesNode.fontSize;
+    button.style.fontWeight = stylesNode.fontWeight;
+    button.style.lineHeight = stylesNode.lineHeight;
+    button.style.maxWidth = stylesNode.maxWidth;
+    button.style.padding = stylesNode.padding;
+    button.style.boxSizing = stylesNode.boxSizing;
+    button.style.display = stylesNode.display;
+    button.style.color = stylesNode.color;
+    button.style.textAlign = 'left';
+    button.style.marginBottom = '3px';
+
+    return button;
 }
 
-let initialized = null;
+const addWatchButton = (addToNode, watchUrl) => {
+    const watchButtonNode = createWatchButtonNode(watchUrl)
 
-window.addEventListener('turbolinks:load', function () {
-    const start = () => {
-        const currentLocation = window.location.href
+    addToNode.prepend(watchButtonNode);
+}
 
-        if (initialized === currentLocation) {
-            return true;
-        }
+const findButtonsBlock = () => document.querySelector(BUTTONS_BLOCK_SELECTOR);
 
-        const watchMetaTag = document.querySelector('meta[name="shikimori-ext-url"]');
-        const watchUrl = watchMetaTag?.content;
-        if (watchUrl == null) {
-            return false;
-        }
-
-        const form = document.querySelector('.b-db_entry > .c-image > .b-user_rate');
-        if (form == null) {
-            return false;
-        }
-
-        try {
-            const data = JSON.parse(form.getAttribute('data-entry'));
-            if (data?.id != null) {
-                initialized = currentLocation;
-                onFormLoaded(form, `${watchUrl}?id=${data?.id}`);
-                return true;
-            }
-        } catch (e) {
-            console.warn('Invalid `data-entry` value');
-        }
-
-        return false;
+const createWatchAnimeUrl = (animeId) => {
+    if (animeId === undefined || animeId === null) {
+        throw new Error('animeId cannot be undefined / null');
     }
 
-    if (start()) {
-        return
+    const watchMetaNode = document.querySelector('meta[name="shikimori-ext-url"]');
+    const watchUrl = watchMetaNode?.content;
+    if (!watchUrl) {
+        return;
     }
 
-    const observer = new MutationObserver(function (mutations, me) {
-        start() && me.disconnect();
-    });
+    return `${watchUrl}?id=${animeId}`;
+}
 
-    observer.observe(document, {
+const showWatchButton = () => {
+    const buttonsBlock = findButtonsBlock();
+    if (!buttonsBlock) {
+        throw new Error("Couldn't find reference button :(");
+    }
+
+    const animeDataAttribute = buttonsBlock.getAttribute('data-entry');
+    const animeData = JSON.parse(animeDataAttribute);
+    if (!animeData) {
+        return;
+    }
+
+    const animeUrl = createWatchAnimeUrl(animeData?.id);
+
+    addWatchButton(buttonsBlock, animeUrl)
+}
+
+const isWatchButtonShown = () => (
+    !!document.querySelector(`${BUTTONS_BLOCK_SELECTOR} > .${WATCH_BUTTON_CLASS_NAME}`)
+)
+
+const toggleWatchButton = () => {
+    if (!isWatchButtonShown()) {
+        showWatchButton();
+    }
+}
+
+const observer = new MutationObserver(toggleWatchButton);
+
+const onPageLoad = () => {
+    const buttonsBlock = findButtonsBlock();
+    if (!buttonsBlock) {
+        return;
+    }
+
+    toggleWatchButton();
+
+    observer.observe(buttonsBlock, {
         childList: true,
-        subtree: true
     });
-})
+}
+
+window.addEventListener('turbolinks:load', onPageLoad);
+window.addEventListener('load', onPageLoad);
