@@ -25,8 +25,13 @@ const createWatchButtonNode = (watchUrl) => {
     button.href = watchUrl;
     button.target = "_blank";
     
-    const watchButtonInnerNode = createWatchButtonInnerHtml('Смотреть');
-    button.appendChild(watchButtonInnerNode);
+    if (document.title.endsWith('EN')) {
+        button.appendChild(createWatchButtonInnerHtml('Watch'));
+    }
+    else {
+        button.appendChild(createWatchButtonInnerHtml('Смотреть'));
+    }
+   
 
     const copyStyleFromNode = document.querySelector(REFERENCE_BUTTON_SELECTOR);
 
